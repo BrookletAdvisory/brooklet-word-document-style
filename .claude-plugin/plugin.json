@@ -1,0 +1,21 @@
+{
+  "name": "brooklet-word-document-style",
+  "description": "Brooklet Word document formatting standards — governs .docx output style for agreements, internal notes, and memos. Defines Candara 12pt typography, three format lanes, and mandatory Word-native automatic numbering via python-docx.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Brooklet Advisory Limited",
+    "url": "https://github.com/BrookletAdvisory"
+  },
+  "homepage": "https://github.com/BrookletAdvisory/brooklet-word-document-style",
+  "repository": "https://github.com/BrookletAdvisory/brooklet-word-document-style",
+  "license": "MIT",
+  "keywords": [
+    "word",
+    "docx",
+    "formatting",
+    "brooklet",
+    "document-style",
+    "python-docx",
+    "auto-numbering"
+  ]
+}
