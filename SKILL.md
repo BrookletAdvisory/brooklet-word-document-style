@@ -204,30 +204,33 @@ Define these abstract numbering definitions in `numbering.xml` and bind each to 
 | Main clauses (multilevel) | Lvl 0 = `1.` (bold); Lvl 1 = `1.1`; Lvl 2 = `(a)` lowerLetter | Continuous at Lvl 0; Lvl 1 and Lvl 2 auto-restart on parent change |
 | Schedule "No." column | `1.`, `2.`, `3.`, ... (decimal with full-stop) | Restart at 1 per schedule |
 
-For Notes and Memos, keep the same principle: any numbered list (e.g., "Action items", "Issues", "Recommendations") must be a Word list, not literal-numbered paragraphs.
+**For Notes and Memos,** every numbered list (e.g., Outstanding Points, Action Items, Sources, 其他事项, numbered recommendations) must use the same numbering.xml mechanism. Use abstractNumId **103** (single-level decimal, "1.", "2.", ...) with a fresh restart-at-1 `<w:num>` clone per list block via `_clone_num_with_restart(doc, 103)`. Each item paragraph gets `apply_numbering(p, num_id, ilvl=0)`. The run text must NOT contain "1.", "2.", etc.
 
 ### Implementation notes (python-docx)
-When building a `.docx` programmatically, follow this checklist — full reference code is in `references/auto-numbering.py`:
+When building a `.docx` programmatically, follow this checklist -- full reference code is in `references/auto-numbering.py`:
 
-1. Trigger creation of the numbering part (e.g., add and immediately remove a paragraph with `style="List Number"`).
-2. Replace `word/numbering.xml` with the Brooklet abstract definitions (see reference file). Use abstractNumIds **100** (Parties), **101** (Background), **102** (multilevel clauses), **103** (schedule No. column).
-3. Bind each abstract to a `<w:num>` instance with a unique `numId` (e.g., 10–15). For lists that must restart at 1 on each reuse (Parties, Background, Schedule No.), create a fresh `<w:num>` clone with a `<w:lvlOverride><w:startOverride w:val="1"/></w:lvlOverride>` for ilvl 0 each time.
-4. Apply numbering by attaching `<w:numPr>` (containing `<w:ilvl>` and `<w:numId>`) to each list paragraph's `<w:pPr>`. Do **not** prepend `"1. "`, `"(a) "`, etc. into the run text.
-5. The multilevel main-clause numId (bound to abstractNumId 102) should be reused throughout the document so Lvl 0 stays continuous (1., 2., 3., ...). Word automatically restarts Lvl 1 (X.1) and Lvl 2 ((a)) on parent change because no `<w:lvlRestart w:val="0"/>` is set.
-6. For schedule "No." columns, attach the schedule numId to the paragraph in each row's first cell and leave the run text empty — the marker is the number.
+1. **CRITICAL FIRST STEP:** Call `install_brooklet_numbering(doc)` immediately after creating the Document. This replaces the numbering.xml with Brooklet definitions.
+2. For each numbered list block that should restart at 1, call `_clone_num_with_restart(doc, 103)` (or `new_note_list_numid(doc)` if using the convenience wrapper) to get a fresh numId.
+3. For each numbered item, add a paragraph and call `apply_numbering(p, num_id, ilvl=0)`. Do **not** prepend `"1. "`, `"2. "` into the run text -- the list engine generates the number.
+4. For multi-level Agreement clauses, reuse the main numId (bound to abstractNumId 102) across the document so Lvl 0 stays continuous. Sub-levels auto-restart on parent change.
+5. For schedule "No." columns, attach the schedule numId to the paragraph in each row's first cell and leave the run text empty.
+
+**DO NOT use `style='List Number'` as a shortcut.** python-docx's `style='List Number'` only applies a style name -- it does NOT create the required `<w:numPr>` references or numbering.xml definitions. The resulting .docx will show literal text numbers that do not auto-renumber in Word. Always use the `install_brooklet_numbering()` + `apply_numbering()` approach from `references/auto-numbering.py`.
 
 ### Verification before delivery
 Before sharing any Word output, confirm:
 - `word/numbering.xml` contains the four abstract definitions and their `<w:num>` bindings;
-- `word/document.xml` references `<w:numId>` for every Parties / Background / clause / sub-clause / limb / schedule-row paragraph;
+- `word/document.xml` references `<w:numId>` for every numbered-list paragraph;
 - no paragraph run text begins with a literal number-prefix pattern (`\d+\.`, `\([a-zA-Z0-9]\)`, etc.) for items that should be auto-numbered;
 - a quick render test still shows the correct numbers (1., 2., 1.1, (a), (A), etc.).
+- **Specifically for Notes/Memos:** open the .docx in Word, add a new item to any numbered list, and verify the subsequent items auto-renumber.
 
 ### Failure modes to avoid
-- Hard-coding `"1. "`, `"2.1 "`, `"(a) "`, `"(A) "` as run text — this defeats auto-renumber.
+- **Using `style='List Number'` instead of `install_brooklet_numbering()` + `apply_numbering()`.** This is the #1 defect -- it produces plain-text numbers that do not auto-renumber. The entire document must be regenerated if this shortcut was taken.
+- Hard-coding `"1. "`, `"2.1 "`, `"(a) "`, `"(A) "` as run text -- this defeats auto-renumber.
 - Using a single shared numId for both Parties and Background (they will continue each other's count instead of restarting).
-- Forgetting `<w:lvlOverride><w:startOverride w:val="1"/></w:lvlOverride>` on restartable lists — Word will continue counting from the previous block.
-- Mixing manual tab-prefixed sub-clauses (`"2.1\t..."`) with auto-numbered ones in the same document — pick auto-numbering and keep it consistent.
+- Forgetting `<w:lvlOverride><w:startOverride w:val="1"/></w:lvlOverride>` on restartable lists -- Word will continue counting from the previous block.
+- Mixing manual tab-prefixed sub-clauses (`"2.1\t..."`) with auto-numbered ones in the same document -- pick auto-numbering and keep it consistent.
 
 ## Style boundaries
 - Do not draft an agreement in note language.

@@ -196,6 +196,50 @@ def new_schedule_numid(doc):
     return _clone_num_with_restart(doc, 103)
 
 
+def new_note_list_numid(doc):
+    """
+    Fresh restart-at-1 numId for a numbered list in a Note or Memo
+    (e.g., Outstanding Points, Action Items, Sources, 其他事项).
+    Uses abstractNumId 103 -- renders as '1.', '2.', '3.', ...
+    Call this ONCE per list block, then reuse the returned numId for
+    all items within that block.
+    """
+    return _clone_num_with_restart(doc, 103)
+
+
+def add_note_numbered_item(doc, num_id, text, bold=False, italic=False, font_name="Candara", font_size=12):
+    """
+    Add a single numbered item to a Note/Memo list.
+
+    doc      : python-docx Document
+    num_id   : int from new_note_list_numid()
+    text     : the item text (do NOT include '1.', '2.', etc.)
+    bold     : if True, entire item text is bold
+    italic   : if True, entire item text is italic
+    font_name: font face (default Candara)
+    font_size: font size in pt (default 12)
+
+    Returns the paragraph for further customisation.
+    """
+    from docx.shared import Pt
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+
+    p = doc.add_paragraph()
+    apply_numbering(p, num_id, 0)
+    run = p.add_run(text)
+    run.font.name = font_name
+    run.font.size = Pt(font_size)
+    run.font.bold = bold
+    run.font.italic = italic
+    # Set East Asian font
+    rPr = run._element.get_or_add_rPr()
+    rFonts = OxmlElement('w:rFonts')
+    rFonts.set(qn('w:eastAsia'), font_name)
+    rPr.insert(0, rFonts)
+    return p
+
+
 def main_numid():
     """Reuse this single numId for all main-clause paragraphs."""
     return 12
