@@ -31,7 +31,8 @@ This skill must first identify the document type and then apply the relevant for
 - Use bracketed placeholders such as [•], [CLIENT], [DATE], [ADDRESS] where information is missing.
 - Use **TBC** where a fact exists but is not yet verified.
 - Keep the final draft clean enough to paste into Word with minimal tidy-up.
-- **All numbered items must use Word-native automatic numbering.** See the "Automatic numbering (mandatory)" section below — this rule is non-negotiable for every Brooklet Word output.
+- **Dashes:** Never use en-dash (–) or em-dash (—) in any document. Standard keyboards cannot produce these characters. Use a single hyphen (-) for ranges and hyphenation, or a double hyphen (--) where an em-dash feel is needed. This applies to all text including date ranges, page ranges, and compound terms.
+- **All numbered items must use Word-native automatic numbering.** See the "Automatic numbering (mandatory)" section below -- this rule is non-negotiable for every Brooklet Word output. Any paragraph that appears to be part of a numbered list (action items, outstanding points, conclusions, recommendations, numbered steps, etc.) MUST use Word's paragraph-level auto-numbering -- never hard-code "1.", "2.", "3." as literal text.
 
 ## Document routing
 Before drafting, determine which of the following three styles applies.
