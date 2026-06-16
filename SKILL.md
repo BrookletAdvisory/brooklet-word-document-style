@@ -173,11 +173,20 @@ If the user asks for analysis, position comparison, pros and cons, or a reasoned
 
 ## Table rules for all three lanes
 - All tables must remain at **12 pt**.
+- **Tables must align flush with body text margins.** Table left edge must match the left edge of body paragraphs. No extra indentation or protrusion. Achieve this by: (i) setting table width to 100% (`w:type="pct" w:w="5000"`); (ii) removing any `w:tblInd` table-level indentation; and (iii) setting cell left/right margins to 0 (or at most 0.04 inches / 108 twips to match default paragraph spacing).
 - Keep tables clean and readable.
 - Do not overcrowd cells.
 - Prefer concise labels.
 - Use tables only where they genuinely improve usability.
-- Where a table contains a sequence (e.g., a "No." column in a schedule), use Word-native automatic numbering for those cells too — never hard-code "1.", "2.", "3.".
+- Where a table contains a sequence (e.g., a "No." column in a schedule), use Word-native automatic numbering for those cells too -- never hard-code "1.", "2.", "3.".
+
+### Table alignment implementation (python-docx)
+
+Call `align_table_to_body(doc, table)` from `references/auto-numbering.py` on every table immediately after creation. This function:
+1. Sets the table width to 100% of the text area (5000 pct)
+2. Removes any table-level left indent (`w:tblInd`)
+3. Sets table alignment to left
+4. Zeros out default cell left/right margins so cell text aligns with body text
 
 ---
 

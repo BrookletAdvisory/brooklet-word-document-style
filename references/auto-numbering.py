@@ -207,6 +207,65 @@ def new_note_list_numid(doc):
     return _clone_num_with_restart(doc, 103)
 
 
+def align_table_to_body(doc, table):
+    """
+    Align a table flush with body text margins.
+    Call this on EVERY table immediately after adding it to the document.
+
+    Performs three fixes:
+    1. Sets table width to 100% of text area (w:type="pct" w:w="5000")
+    2. Removes any table-level left indent (w:tblInd)
+    3. Zeros out default cell left/right margins so cell text
+       starts at the same horizontal position as body paragraphs.
+    """
+    tbl = table._tbl
+    tblPr = tbl.tblPr
+    if tblPr is None:
+        tblPr = OxmlElement('w:tblPr')
+        tbl.insert(0, tblPr)
+
+    # 1. Remove existing tblInd (table-level indentation)
+    for ind in tblPr.findall(qn('w:tblInd')):
+        tblPr.remove(ind)
+
+    # 2. Set table width to 100% of page text area
+    for existing in tblPr.findall(qn('w:tblW')):
+        tblPr.remove(existing)
+    tblW = OxmlElement('w:tblW')
+    tblW.set(qn('w:w'), '5000')     # 5000 = 100% in pct units
+    tblW.set(qn('w:type'), 'pct')
+    tblPr.insert(0, tblW)
+
+    # 3. Set table alignment to left
+    for existing in tblPr.findall(qn('w:jc')):
+        tblPr.remove(existing)
+    jc = OxmlElement('w:jc')
+    jc.set(qn('w:val'), 'left')
+    tblPr.append(jc)
+
+    # 4. Zero out default cell margins (left/right)
+    #    so cell text aligns with body text.
+    #    Only touch left/right; preserve top/bottom if set.
+    tblCellMar = tblPr.find(qn('w:tblCellMar'))
+    if tblCellMar is None:
+        tblCellMar = OxmlElement('w:tblCellMar')
+        tblPr.append(tblCellMar)
+    # Remove existing left/right margin elements
+    for edge in ('left', 'right'):
+        for existing in tblCellMar.findall(qn(f'w:{edge}')):
+            tblCellMar.remove(existing)
+    # Set left margin to 0
+    left_mar = OxmlElement('w:left')
+    left_mar.set(qn('w:w'), '0')
+    left_mar.set(qn('w:type'), 'dxa')
+    tblCellMar.append(left_mar)
+    # Set right margin to 0
+    right_mar = OxmlElement('w:right')
+    right_mar.set(qn('w:w'), '0')
+    right_mar.set(qn('w:type'), 'dxa')
+    tblCellMar.append(right_mar)
+
+
 def add_note_numbered_item(doc, num_id, text, bold=False, italic=False, font_name="Candara", font_size=12):
     """
     Add a single numbered item to a Note/Memo list.
