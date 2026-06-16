@@ -204,7 +204,13 @@ Define these abstract numbering definitions in `numbering.xml` and bind each to 
 | Main clauses (multilevel) | Lvl 0 = `1.` (bold); Lvl 1 = `1.1`; Lvl 2 = `(a)` lowerLetter | Continuous at Lvl 0; Lvl 1 and Lvl 2 auto-restart on parent change |
 | Schedule "No." column | `1.`, `2.`, `3.`, ... (decimal with full-stop) | Restart at 1 per schedule |
 
-**For Notes and Memos,** every numbered list (e.g., Outstanding Points, Action Items, Sources, 其他事项, numbered recommendations) must use the same numbering.xml mechanism. Use abstractNumId **103** (single-level decimal, "1.", "2.", ...) with a fresh restart-at-1 `<w:num>` clone per list block via `_clone_num_with_restart(doc, 103)`. Each item paragraph gets `apply_numbering(p, num_id, ilvl=0)`. The run text must NOT contain "1.", "2.", etc.
+**For Notes and Memos, ALL numbers in the document must be auto-numbering.** This includes TWO categories:
+
+**Category A -- Section headings (1.1, 1.2, 2.1, etc.):** Use abstractNumId **102** (multilevel). The section title paragraph gets `apply_numbering(p, main_numid(), ilvl=0)` for top-level sections (1., 2., 3.) and `apply_numbering(p, main_numid(), ilvl=1)` for sub-sections (1.1, 1.2, 2.1, etc.). The run text must NOT contain the number -- write "Overview" not "1.1 Overview"; the list engine generates the prefix. The main numId (12) is reused across the entire document so top-level sections stay continuous; sub-sections auto-restart on parent change.
+
+**Category B -- Numbered lists (Outstanding Points, Sources, 其他事项):** Use abstractNumId **103** (single-level "1.", "2.", ...) with a fresh restart-at-1 clone per list block via `_clone_num_with_restart(doc, 103)`. Each item gets `apply_numbering(p, num_id, ilvl=0)`.
+
+**The test for Category A vs B:** Ask "should this number continue from the previous section (1.1 -> 1.2 -> 1.3)?" If yes, it's Category A (multilevel section numbering, abstractNumId 102). Ask "should this list restart at 1?" If yes, it's Category B (single-level list, abstractNumId 103). Never hard-code "1.", "1.1", "2." as literal text in ANY paragraph.
 
 ### Implementation notes (python-docx)
 When building a `.docx` programmatically, follow this checklist -- full reference code is in `references/auto-numbering.py`:
